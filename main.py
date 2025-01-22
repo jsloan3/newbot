@@ -11,8 +11,11 @@ print(TOKEN)
 
 intents = Intents.default()
 intents.message_content = True
+intents.voice_states = True
 client = Client(intents=intents)
 tree = app_commands.CommandTree(client)
+
+current_voice = None
 
 @tree.command(
     name="ping",
@@ -30,11 +33,55 @@ async def ping(interaction, arg1: str):
 )
 @app_commands.describe(search="youtube video url")
 async def play(interaction, search: str):
+
+    ydl_opts = {'format': 'bestaudio', 'audio-format': 'opus'}
+    ffmpeg_opts = {'options': '-vn'}
+
     await interaction.response.send_message(f"downloading {search} to directory")
     URL = [search]
-    with YoutubeDL() as ydl:
-        ydl.download(URL)
+    with YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(search, download=False)
+    print(info["url"])
+    current_voice.play(FFmpegPCMAudio(info["url"], **ffmpeg_opts))
     
+
+@tree.command(
+    name="join",
+    description="join your voice channel",
+    guild=Object(id=GUILD)
+)
+async def join(interaction):
+    global current_voice
+
+    voicech_name = str(interaction.user.voice.channel)
+    if current_voice != None:
+        await interaction.response.send_message(f"i'm already in the channel {voicech_name}")
+        return
+    user_voicech_id = interaction.user.voice.channel.id
+    if user_voicech_id == None:
+        await interaction.response.send_message("you must be in a channel to use /play")
+    user_voicech = client.get_channel(user_voicech_id)
+    voice_client = await user_voicech.connect()
+    current_voice = voice_client
+    await interaction.response.send_message(f"joined channel {voicech_name}")
+
+@tree.command(
+    name="leave",
+    description="make the bot disconnect",
+    guild=Object(id=GUILD)
+)
+async def leave(interaction):
+    global current_voice
+
+    if current_voice == None:
+        await interaction.response.send_message("i'm not in a channel")
+        return
+    await current_voice.disconnect()
+    await interaction.response.send_message("goodbye")
+    current_voice = None
+    return
+    
+
 
 @client.event
 async def on_ready():
@@ -42,3 +89,5 @@ async def on_ready():
     print("ready")
 
 client.run(TOKEN)
+
+# yt-dlp 'https://www.youtube.com/watch?v=56hqrlQxMMI' -o - | mpv -
