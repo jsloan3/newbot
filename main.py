@@ -34,24 +34,39 @@ async def ping(interaction, arg1: str):
 )
 @app_commands.describe(search="youtube video url")
 async def play(interaction, search: str):
+    global queue
 
-    ydl_opts = {'format': 'bestaudio', 'audio-format': 'opus'}
+    text_chan = interaction.channel
+    ydl_opts_proc = {'format': 'bestaudio', 'audio-format': 'opus', 'extract_flat': False}
+    ydl_opts = {'format': 'bestaudio', 'audio-format': 'opus', 'extract_flat': True}
 
-    await interaction.response.send_message(f"downloading {search} to directory")
+    await interaction.response.send_message(f"searching for {search} . . .")
     with YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(f"ytsearch:{search}", download=False)
+    with YoutubeDL(ydl_opts_proc) as ydl_proc:
+        proc_info = ydl_proc.extract_info(f"ytsearch:{search}", download=False)
     url_retrieved = info['entries'][0]['url']
+    proc_url = proc_info['entries'][0]['url']
+    print(proc_url)
     print(url_retrieved)
-    if current_voice.is_playing == False:
+    print(info)
+    songtitle = info['entries'][0]['title']
+    await text_chan.send(f"adding {songtitle} to the queue")
+
+    queue.append(proc_url)
+
+    print("before")
+    if current_voice.is_playing() == False:
+        print("after")
         play_next(interaction)
     
 def play_next(interaction):
-    ffmpeg_opts = {'options': '-vn'}
+    ffmpeg_opts = {'before_options': '-reconnect 1', 'options': '-vn'}
     print("song finished")
     if len(queue) == 0:
         return
     next_url = queue.pop(0)
-    current_voice.play(FFmpegPCMAudio(next_url, **ffmpeg_opts,), after=lambda e: play_next())
+    current_voice.play(FFmpegOpusAudio(next_url, **ffmpeg_opts,), after=lambda e: play_next(interaction))
     
     
 @tree.command(
