@@ -16,6 +16,7 @@ client = Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
 current_voice = None
+queue = []
 
 @tree.command(
     name="ping",
@@ -35,15 +36,32 @@ async def ping(interaction, arg1: str):
 async def play(interaction, search: str):
 
     ydl_opts = {'format': 'bestaudio', 'audio-format': 'opus'}
-    ffmpeg_opts = {'options': '-vn'}
 
     await interaction.response.send_message(f"downloading {search} to directory")
-    URL = [search]
     with YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(search, download=False)
-    print(info["url"])
-    current_voice.play(FFmpegPCMAudio(info["url"], **ffmpeg_opts))
+        info = ydl.extract_info(f"ytsearch:{search}", download=False)
+    url_retrieved = info['entries'][0]['url']
+    print(url_retrieved)
+    if current_voice.is_playing == False:
+        play_next(interaction)
     
+def play_next(interaction):
+    ffmpeg_opts = {'options': '-vn'}
+    print("song finished")
+    if len(queue) == 0:
+        return
+    next_url = queue.pop(0)
+    current_voice.play(FFmpegPCMAudio(next_url, **ffmpeg_opts,), after=lambda e: play_next())
+    
+    
+@tree.command(
+    name="stop",
+    description="stops all music and clears the queue",
+    guild=Object(id=GUILD)
+)
+async def stop(interaction):
+    current_voice.stop()
+    await interaction.response.send_message("stopping music")
 
 @tree.command(
     name="join",
