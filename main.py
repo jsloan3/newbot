@@ -37,10 +37,10 @@ async def play(interaction, search: str):
     global queue
 
     text_chan = interaction.channel
-    ydl_opts_proc = {'format': 'bestaudio', 'audio-format': 'opus', 'extract_flat': False}
+    ydl_opts_proc = {'format': 'bestaudio/best', 'extract_flat': False}
     ydl_opts = {'format': 'bestaudio', 'audio-format': 'opus', 'extract_flat': True}
 
-    await interaction.response.send_message(f"searching for {search} . . .")
+    await interaction.response.send_message(f"searching for '{search}' . . .")
     with YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(f"ytsearch:{search}", download=False)
     with YoutubeDL(ydl_opts_proc) as ydl_proc:
@@ -51,7 +51,7 @@ async def play(interaction, search: str):
     print(url_retrieved)
     print(info)
     songtitle = info['entries'][0]['title']
-    await text_chan.send(f"adding {songtitle} to the queue")
+    await text_chan.send(f"adding [{songtitle}](<{url_retrieved}>) to the queue")
 
     queue.append(proc_url)
 
@@ -61,7 +61,7 @@ async def play(interaction, search: str):
         play_next(interaction)
     
 def play_next(interaction):
-    ffmpeg_opts = {'before_options': '-reconnect 1', 'options': '-vn'}
+    ffmpeg_opts = {'before_options': '-reconnect 1 -rtbufsize 500M', 'options': '-vn'}
     print("song finished")
     if len(queue) == 0:
         return
@@ -75,8 +75,27 @@ def play_next(interaction):
     guild=Object(id=GUILD)
 )
 async def stop(interaction):
+    global queue
+    queue = []
     current_voice.stop()
     await interaction.response.send_message("stopping music")
+
+@tree.command(
+    name="skip",
+    description="skips the currently playing song",
+    guild=Object(id=GUILD)
+)
+async def skip():
+    current_voice.stop()
+
+@tree.command(
+    name="queue",
+    description="shows the current queue",
+    guild=Object(id=GUILD)
+)
+async def queue(interaction):
+    await interaction.response.send_message(f"not done yet noob lol")
+
 
 @tree.command(
     name="join",
