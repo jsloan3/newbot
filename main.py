@@ -108,7 +108,13 @@ async def queue(interaction):
     global music_queue
     queue_string = ">>> "
     i = 0
+    if current_song == None:
+        await interaction.response.send_message("nothing playing!")
+        return
     queue_string += f"`Playing` : [{current_song[2]}](<{current_song[1]}>)\n"
+    if len(music_queue) == 0:
+        await interaction.response.send_message(queue_string)
+        return
     for s in music_queue:
         queue_string += f" `{i}` : [{s[2]}](<{s[1]}>)\n"
         i += 1
