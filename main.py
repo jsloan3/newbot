@@ -85,7 +85,7 @@ async def stop(interaction):
     description="skips the currently playing song",
     guild=Object(id=GUILD)
 )
-async def skip():
+async def skip(interaction):
     current_voice.stop()
 
 @tree.command(
