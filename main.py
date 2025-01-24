@@ -16,7 +16,7 @@ client = Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
 current_voice = None
-queue = []
+music_queue = []
 
 @tree.command(
     name="ping",
@@ -34,7 +34,7 @@ async def ping(interaction, arg1: str):
 )
 @app_commands.describe(search="youtube video url")
 async def play(interaction, search: str):
-    global queue
+    global music_queue
 
     if current_voice == None:
         await interaction.response.send_message(f"i must be in a channel to play music, use /join first")
@@ -57,7 +57,7 @@ async def play(interaction, search: str):
     songtitle = info['entries'][0]['title']
     await text_chan.send(f"adding [{songtitle}](<{url_retrieved}>) to the queue")
 
-    queue.append(proc_url)
+    music_queue.append(proc_url)
 
     print("before")
     if current_voice.is_playing() == False:
@@ -67,9 +67,9 @@ async def play(interaction, search: str):
 def play_next(interaction):
     ffmpeg_opts = {'before_options': '-reconnect 1 -rtbufsize 500M', 'options': '-vn'}
     print("song finished")
-    if len(queue) == 0:
+    if len(music_queue) == 0:
         return
-    next_url = queue.pop(0)
+    next_url = music_queue.pop(0)
     current_voice.play(FFmpegOpusAudio(next_url, **ffmpeg_opts,), after=lambda e: play_next(interaction))
     
     
@@ -79,8 +79,8 @@ def play_next(interaction):
     guild=Object(id=GUILD)
 )
 async def stop(interaction):
-    global queue
-    queue = []
+    global music_queue
+    music_queue = []
     current_voice.stop()
     await interaction.response.send_message("stopping music")
 
