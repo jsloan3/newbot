@@ -58,7 +58,7 @@ async def play(interaction, search: str):
     songtitle = info['entries'][0]['title']
     await text_chan.send(f"adding [{songtitle}](<{url_retrieved}>) to the queue")
 
-    music_queue.append((proc_url),(url_retrieved),(songtitle))
+    music_queue.append((proc_url, url_retrieved, songtitle))
 
     print("before")
     if current_voice.is_playing() == False:
