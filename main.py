@@ -36,6 +36,10 @@ async def ping(interaction, arg1: str):
 async def play(interaction, search: str):
     global queue
 
+    if current_voice == None:
+        await interaction.response.send_message(f"i must be in a channel to play music, use /join first")
+        return
+
     text_chan = interaction.channel
     ydl_opts_proc = {'format': 'bestaudio/best', 'extract_flat': False}
     ydl_opts = {'format': 'bestaudio', 'audio-format': 'opus', 'extract_flat': True}
