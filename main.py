@@ -17,6 +17,7 @@ tree = app_commands.CommandTree(client)
 
 current_voice = None
 music_queue = []
+current_song = None
 
 @tree.command(
     name="ping",
@@ -51,13 +52,13 @@ async def play(interaction, search: str):
         proc_info = ydl_proc.extract_info(f"ytsearch:{search}", download=False)
     url_retrieved = info['entries'][0]['url']
     proc_url = proc_info['entries'][0]['url']
-    print(proc_url)
+    #print(proc_url)
     print(url_retrieved)
     print(info)
     songtitle = info['entries'][0]['title']
     await text_chan.send(f"adding [{songtitle}](<{url_retrieved}>) to the queue")
 
-    music_queue.append(proc_url)
+    music_queue.append((proc_url),(url_retrieved),(songtitle))
 
     print("before")
     if current_voice.is_playing() == False:
@@ -65,11 +66,13 @@ async def play(interaction, search: str):
         play_next(interaction)
     
 def play_next(interaction):
+    global currently_playing
     ffmpeg_opts = {'before_options': '-reconnect 1 -rtbufsize 500M', 'options': '-vn'}
     print("song finished")
     if len(music_queue) == 0:
         return
-    next_url = music_queue.pop(0)
+    currently_playing = music_queue.pop(0)
+    next_url = currently_playing[0]
     current_voice.play(FFmpegOpusAudio(next_url, **ffmpeg_opts,), after=lambda e: play_next(interaction))
     
     
@@ -79,8 +82,10 @@ def play_next(interaction):
     guild=Object(id=GUILD)
 )
 async def stop(interaction):
+    global currently_playing 
     global music_queue
     music_queue = []
+    currently_playing = None
     current_voice.stop()
     await interaction.response.send_message("stopping music")
 
@@ -98,7 +103,16 @@ async def skip(interaction):
     guild=Object(id=GUILD)
 )
 async def queue(interaction):
-    await interaction.response.send_message(f"not done yet noob lol")
+    global current_song
+    global music_queue
+    queue_string = ">>> "
+    i = 0
+    queue_string += f"`Playing` : [{current_song[2]}](<{current_song[1]}>)\n"
+    for s in music_queue:
+        queue_string += f" `{i}` : [{s[2]}](<{s[1]}>)\n"
+        i += 1
+        
+    await interaction.response.send_message(queue_string)
 
 
 @tree.command(
