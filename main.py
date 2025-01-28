@@ -167,15 +167,12 @@ async def on_ready():
 @client.event
 async def on_voice_state_update(member, state_before, state_after):
     global current_voice
-    print(f"voice state change: m: {member} s_b: {state_before.channel.id}")
-    print(f"current voice channel = {current_voice.channel.id}")
     if current_voice == None:
         return
     if not (state_before.channel.id == current_voice.channel.id):
         return
-    print(len(state_before.channel.members))
     if len(state_before.channel.members) == 1:
-        current_voice.disconnect()
+        await current_voice.disconnect()
     
 
 client.run(TOKEN)
