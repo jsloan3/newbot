@@ -167,6 +167,7 @@ async def on_ready():
 @client.event
 async def on_voice_state_update(member, state_before, state_after):
     global current_voice
+    print(f"voice state change: m: {member} s_b: {state_before} s_a: {state_after}")
     if current_voice == None:
         return
     if not (state_before != None and state_after == None):
