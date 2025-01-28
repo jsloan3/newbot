@@ -173,7 +173,7 @@ async def on_voice_state_update(member, state_before, state_after):
         return
     if not (state_before != None and state_after == None):
         return
-    if state_before.channel == current_voice:
+    if state_before.channel == current_voice.channel:
         current_voice.disconnect()
     
 
