@@ -167,7 +167,7 @@ async def on_ready():
 @client.event
 async def on_voice_state_update(member, state_before, state_after):
     global current_voice
-    if current_voice == None:
+    if current_voice == None or state_before == None:
         return
     if not (state_before.channel.id == current_voice.channel.id):
         return
