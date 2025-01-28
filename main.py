@@ -150,14 +150,12 @@ async def join(interaction):
 )
 async def leave(interaction):
     global current_voice
-
     if current_voice == None:
         await interaction.response.send_message("i'm not in a channel")
         return
     await current_voice.disconnect()
     await interaction.response.send_message("goodbye")
-    current_voice = None
-    return
+    cleanup_after_leave()
 
 @client.event
 async def on_ready():
@@ -173,6 +171,15 @@ async def on_voice_state_update(member, state_before, state_after):
         return
     if len(state_before.channel.members) == 1:
         await current_voice.disconnect()
+        cleanup_after_leave()
+
+def cleanup_after_leave():
+    global current_voice
+    global music_queue
+    global current_song
+    current_song = None
+    music_queue = []
+    current_voice = None
     
 
 client.run(TOKEN)
