@@ -171,9 +171,10 @@ async def on_voice_state_update(member, state_before, state_after):
     print(f"current voice channel = {current_voice.channel.id}")
     if current_voice == None:
         return
-    if not (state_before != None and state_after == None):
+    if not (state_before.channel.id == current_voice.channel.id):
         return
-    if state_before.channel.id == current_voice.channel.id:
+    print(len(state_before.channel.members))
+    if len(state_before.channel.members) == 1:
         current_voice.disconnect()
     
 
