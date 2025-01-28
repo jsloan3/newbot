@@ -96,7 +96,9 @@ async def stop(interaction):
     guild=Object(id=GUILD)
 )
 async def skip(interaction):
+    global current_song
     current_voice.stop()
+    await interaction.response.send_message(f"skipping [{current_song[2]}](<{current_song[1]}>)")
 
 @tree.command(
     name="queue",
@@ -121,7 +123,6 @@ async def queue(interaction):
         
     await interaction.response.send_message(queue_string)
 
-
 @tree.command(
     name="join",
     description="join your voice channel",
@@ -136,7 +137,7 @@ async def join(interaction):
         return
     user_voicech_id = interaction.user.voice.channel.id
     if user_voicech_id == None:
-        await interaction.response.send_message("you must be in a channel to use /play")
+        await interaction.response.send_message("you must be in a channel to use /join")
     user_voicech = client.get_channel(user_voicech_id)
     voice_client = await user_voicech.connect()
     current_voice = voice_client
@@ -157,14 +158,19 @@ async def leave(interaction):
     await interaction.response.send_message("goodbye")
     current_voice = None
     return
-    
-
 
 @client.event
 async def on_ready():
     await tree.sync(guild=Object(id=GUILD))
     print("ready")
 
-client.run(TOKEN)
+@client.event
+async def on_voice_state_update(member, state_before, state_after):
+    global current_voice
+    if current_voice == None:
+        return
+    if state_before != None and state_after == None:
+        current_voice.disconnect()
+    
 
-# yt-dlp 'https://www.youtube.com/watch?v=56hqrlQxMMI' -o - | mpv -
+client.run(TOKEN)
