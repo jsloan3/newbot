@@ -97,7 +97,7 @@ async def swap(interaction, first: int, second: int):
 @app_commands.describe(song="index of song to remove")
 async def remove(interaction, song: int):
     global music_queue
-    music_queue.pop(int)
+    music_queue.pop(song)
     await interaction.response.send_message(f"song removed from queue")
 
 @tree.command(
