@@ -43,8 +43,8 @@ async def play(interaction, search: str):
         return
 
     text_chan = interaction.channel
-    ydl_opts_proc = {'format': 'bestaudio/best', 'extract_flat': False}
-    ydl_opts = {'format': 'bestaudio', 'audio-format': 'opus', 'extract_flat': True}
+    ydl_opts_proc = {'format': 'bestaudio/best', 'extract_flat': False, 'cookiefile': 'cookies.txt'}
+    ydl_opts = {'format': 'bestaudio', 'audio-format': 'opus', 'extract_flat': True, 'cookiefile': 'cookies.txt'}
 
     await interaction.response.send_message(f"searching for '{search}' . . .")
     with YoutubeDL(ydl_opts) as ydl:
