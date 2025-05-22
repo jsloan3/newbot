@@ -76,7 +76,30 @@ def play_next(interaction):
     next_url = current_song[0]
     current_voice.play(FFmpegOpusAudio(next_url, **ffmpeg_opts,), after=lambda e: play_next(interaction))
     
-    
+@tree.command(
+    name="swap",
+    description="swaps two songs in the queue",
+    guild=Object(id=GUILD)
+)
+@app_commands.describe(first="first song to swap", second="second song to swap")
+async def swap(interaction, first: int, second: int):
+    global music_queue
+    temp = music_queue[first]
+    music_queue[first] = music_queue[second]
+    music_queue[second] = temp
+    await interaction.response.send_message(f"songs swapped")
+
+@tree.command(
+    name="remove",
+    description="removes a song from the queue",
+    guild=Object(id=GUILD)
+)
+@app_commands.describe(song="index of song to remove")
+async def remove(interaction, song: int):
+    global music_queue
+    music_queue.pop(int)
+    await interaction.response.send_message(f"song removed from queue")
+
 @tree.command(
     name="stop",
     description="stops all music and clears the queue",
