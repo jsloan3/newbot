@@ -16,7 +16,7 @@ client = Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
 current_voice = None
-queue = []
+music_queue = []
 
 @tree.command(
     name="ping",
@@ -34,24 +34,43 @@ async def ping(interaction, arg1: str):
 )
 @app_commands.describe(search="youtube video url")
 async def play(interaction, search: str):
+    global music_queue
 
-    ydl_opts = {'format': 'bestaudio', 'audio-format': 'opus'}
+    if current_voice == None:
+        await interaction.response.send_message(f"i must be in a channel to play music, use /join first")
+        return
 
-    await interaction.response.send_message(f"downloading {search} to directory")
+    text_chan = interaction.channel
+    ydl_opts_proc = {'format': 'bestaudio/best', 'extract_flat': False}
+    ydl_opts = {'format': 'bestaudio', 'audio-format': 'opus', 'extract_flat': True}
+
+    await interaction.response.send_message(f"searching for '{search}' . . .")
     with YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(f"ytsearch:{search}", download=False)
+    with YoutubeDL(ydl_opts_proc) as ydl_proc:
+        proc_info = ydl_proc.extract_info(f"ytsearch:{search}", download=False)
     url_retrieved = info['entries'][0]['url']
+    proc_url = proc_info['entries'][0]['url']
+    print(proc_url)
     print(url_retrieved)
-    if current_voice.is_playing == False:
+    print(info)
+    songtitle = info['entries'][0]['title']
+    await text_chan.send(f"adding [{songtitle}](<{url_retrieved}>) to the queue")
+
+    music_queue.append(proc_url)
+
+    print("before")
+    if current_voice.is_playing() == False:
+        print("after")
         play_next(interaction)
     
 def play_next(interaction):
-    ffmpeg_opts = {'options': '-vn'}
+    ffmpeg_opts = {'before_options': '-reconnect 1 -rtbufsize 500M', 'options': '-vn'}
     print("song finished")
-    if len(queue) == 0:
+    if len(music_queue) == 0:
         return
-    next_url = queue.pop(0)
-    current_voice.play(FFmpegPCMAudio(next_url, **ffmpeg_opts,), after=lambda e: play_next())
+    next_url = music_queue.pop(0)
+    current_voice.play(FFmpegOpusAudio(next_url, **ffmpeg_opts,), after=lambda e: play_next(interaction))
     
     
 @tree.command(
@@ -60,8 +79,27 @@ def play_next(interaction):
     guild=Object(id=GUILD)
 )
 async def stop(interaction):
+    global music_queue
+    music_queue = []
     current_voice.stop()
     await interaction.response.send_message("stopping music")
+
+@tree.command(
+    name="skip",
+    description="skips the currently playing song",
+    guild=Object(id=GUILD)
+)
+async def skip(interaction):
+    current_voice.stop()
+
+@tree.command(
+    name="queue",
+    description="shows the current queue",
+    guild=Object(id=GUILD)
+)
+async def queue(interaction):
+    await interaction.response.send_message(f"not done yet noob lol")
+
 
 @tree.command(
     name="join",
