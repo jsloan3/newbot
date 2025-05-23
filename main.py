@@ -1,5 +1,6 @@
 import os
 from discord import *
+import discord
 from dotenv import load_dotenv
 from yt_dlp import YoutubeDL
 
@@ -39,8 +40,11 @@ async def play(interaction, search: str):
     global current_song
 
     if current_voice == None:
-        await interaction.response.send_message(f"i must be in a channel to play music, use /join first")
-        return
+        #await interaction.response.send_message(f"i must be in a channel to play music, use /join first")
+        user_voicech_id = interaction.user.voice.channel.id
+        user_voicech = client.get_channel(user_voicech_id)
+        voice_client = await user_voicech.connect()
+        current_voice = voice_client
 
     text_chan = interaction.channel
     ydl_opts_proc = {'format': 'bestaudio/best', 'extract_flat': False, 'cookiefile': 'cookies.txt'}
