@@ -38,6 +38,7 @@ async def ping(interaction, arg1: str):
 async def play(interaction, search: str):
     global music_queue
     global current_song
+    global current_voice
 
     if current_voice == None:
         #await interaction.response.send_message(f"i must be in a channel to play music, use /join first")
