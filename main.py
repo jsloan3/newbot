@@ -47,9 +47,15 @@ async def play(interaction, search: str):
         voice_client = await user_voicech.connect()
         current_voice = voice_client
 
+    extractor_opts = {
+        'youtube': {
+            'player_client': 'tv_simply'
+        }
+    }
+
     text_chan = interaction.channel
-    ydl_opts_proc = {'format': 'bestaudio/best', 'extract_flat': False, 'cookiefile': 'cookies.txt', 'extractor_args':{'youtube':['tv_simply']}}
-    ydl_opts = {'format': 'bestaudio', 'audio-format': 'opus', 'extract_flat': True, 'cookiefile': 'cookies.txt', 'extractor_args':{'youtube':['tv_simply']}}
+    ydl_opts_proc = {'format': 'bestaudio/best', 'extract_flat': False, 'cookiefile': 'cookies.txt', 'extractor_args': extractor_opts}
+    ydl_opts = {'format': 'bestaudio', 'audio-format': 'opus', 'extract_flat': True, 'cookiefile': 'cookies.txt', 'extractor_args': extractor_opts}
 
     await interaction.response.send_message(f"searching for '{search}' . . .")
     with YoutubeDL(ydl_opts) as ydl:
