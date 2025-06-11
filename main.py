@@ -49,7 +49,7 @@ async def play(interaction, search: str):
 
     extractor_opts = {
         'youtube': {
-            'player_client': 'tv_simply'
+            'player_client': ['tv_simply']
         }
     }
 
