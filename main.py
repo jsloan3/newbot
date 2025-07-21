@@ -41,7 +41,6 @@ async def play(interaction, search: str):
     global current_voice
 
     if current_voice == None:
-        #await interaction.response.send_message(f"i must be in a channel to play music, use /join first")
         user_voicech_id = interaction.user.voice.channel.id
         user_voicech = client.get_channel(user_voicech_id)
         voice_client = await user_voicech.connect()
@@ -190,6 +189,39 @@ async def leave(interaction):
     await current_voice.disconnect()
     await interaction.response.send_message("goodbye")
     cleanup_after_leave()
+
+@tree.command(
+    name="radio",
+    description="play a radio url (get them from https://fmstream.org/)",
+    guild=Object(id=GUILD)
+)
+@app_commands.describe(arg1="radio url")
+async def radio(interaction, arg1: str):
+    global music_queue
+    global current_song
+    global current_voice
+
+    try:
+        if current_voice == None:
+            user_voicech_id = interaction.user.voice.channel.id
+            user_voicech = client.get_channel(user_voicech_id)
+            voice_client = await user_voicech.connect()
+            current_voice = voice_client
+
+        music_queue.append((arg1, arg1, 'Radio'))
+
+        await interaction.response.send_message(f"added radio to queue")
+
+        if current_voice.is_playing() == False:
+            play_next(interaction)
+
+    except Exception as e:
+        await interaction.response.send_message(f"an error occured while trying to play the radio")
+        raise e
+
+
+
+
 
 @client.event
 async def on_ready():
